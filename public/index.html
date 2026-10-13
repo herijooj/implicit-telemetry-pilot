@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Survey Study (Pilot)</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main id="app" aria-live="polite">
+  <!-- Landing + consent -->
+  <section id="screen-consent" class="card">
+    <h1>Short survey study</h1>
+    <p>This study records <strong>how you interact with the form</strong> (timing, mouse/touch movement, keyboard timing) in addition to your answers.</p>
+    <p id="contact-line"></p>
+    <label class="consent"><input type="checkbox" id="consent-box"> I understand and agree</label>
+    <button id="btn-start" disabled>Start</button>
+  </section>
+
+  <!-- Context -->
+  <section id="screen-context" class="card" hidden>
+    <h1>About your device</h1>
+    <label>Device type
+      <select id="device-sel">
+        <option value="desktop">desktop</option>
+        <option value="tablet">tablet</option>
+        <option value="phone">phone</option>
+      </select>
+    </label>
+    <p class="hint" id="device-detected"></p>
+    <label>Age range (optional)
+      <select id="age-sel">
+        <option value="">— select —</option>
+        <option>18–24</option><option>25–34</option><option>35–44</option>
+        <option>45–54</option><option>55–64</option><option>65+</option>
+        <option>Prefer not to say</option>
+      </select>
+    </label>
+    <button id="btn-context-next">Next</button>
+  </section>
+
+  <!-- Question -->
+  <section id="screen-q" class="card" hidden>
+    <p id="progress" aria-label="progress"></p>
+    <h2 id="q-text"></h2>
+    <div id="q-body"></div>
+    <p id="q-err" class="err" role="alert" hidden></p>
+    <div class="nav">
+      <button id="btn-back">Back</button>
+      <button id="btn-next">Next</button>
+    </div>
+  </section>
+
+  <!-- Confirm prompt -->
+  <div id="confirm-modal" hidden role="dialog" aria-modal="true" aria-label="Confirm answer">
+    <div class="modal-box">
+      <p>Are you sure about your answer?</p>
+      <button id="btn-keep">Keep my answer</button>
+      <button id="btn-change">Change my answer</button>
+    </div>
+  </div>
+
+  <!-- Debrief -->
+  <section id="screen-done" class="card" hidden>
+    <h1>Thank you</h1>
+    <p>This study examines whether hesitation before a confirmation prompt predicts answer revision, and how self-reported difficulty relates to interaction signals. Your data includes answers plus interaction timing only. No key content, no IP, no trackers.</p>
+    <p>Session ID: <code id="sess-id"></code></p>
+    <p id="contact-line2"></p>
+    <button id="btn-delete">Delete my data</button>
+    <p id="del-msg"></p>
+  </section>
+</main>
+<script src="/app.js?v=3" type="module"></script>
+</body>
+</html>

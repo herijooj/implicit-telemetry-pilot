@@ -1,0 +1,10 @@
+{
+  "name": "implicit-telemetry-pilot",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "simulate": "node scripts/simulate.mjs",
+    "test": "node scripts/simulate.mjs --check"
+  }
+}

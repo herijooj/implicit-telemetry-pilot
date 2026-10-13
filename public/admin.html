@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Telemetry Pilot</title>
+<link rel="stylesheet" href="/styles.css">
+<style>table{border-collapse:collapse;width:100%;font-size:.85rem}td,th{border:1px solid #ddd;padding:6px;text-align:left}th{cursor:pointer;background:#f3f4f6}canvas{border:1px solid #ddd;max-width:100%}.row{cursor:pointer}.row:hover{background:#eef}.grid{display:grid;gap:16px}@media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}</style>
+</head>
+<body>
+<main style="max-width:1000px">
+<h1>Dashboard</h1>
+<section id="login" class="card">
+  <input type="password" id="pw" placeholder="dashboard password" aria-label="dashboard password">
+  <button id="btn-login">Login</button>
+</section>
+<section id="dash" hidden>
+  <p id="status" role="status"></p>
+  <div class="card">
+    <h2>Sessions</h2>
+    <label>device <select id="f-dev"><option value="">all</option><option>desktop</option><option>tablet</option><option>phone</option></select></label>
+    <label>status <select id="f-st"><option value="">all</option><option>in_progress</option><option>completed</option><option>abandoned</option></select></label>
+    <button id="btn-refresh">Refresh</button>
+    <table id="tbl"><thead><tr><th>session</th><th>device</th><th>start</th><th>status</th><th>confirm items</th><th>flags</th><th></th></tr></thead><tbody></tbody></table>
+  </div>
+  <div class="card">
+    <h2>Session detail</h2>
+    <div id="detail"><p>Select a session.</p></div>
+    <h3>Trajectory</h3>
+    <label>question <select id="traj-q"></select></label>
+    <canvas id="traj" width="600" height="360"></canvas>
+    <h3>Events</h3>
+    <label>filter type <input id="ev-f" placeholder="e.g. pointer_move"></label>
+    <table id="evtbl"><thead><tr><th>seq</th><th>type</th><th>q</th><th>visit</th><th>t</th><th>payload</th></tr></thead><tbody></tbody></table>
+  </div>
+  <div class="card">
+    <h2>Question view</h2>
+    <label>question <input id="qv-q" value="S1"></label>
+    <button id="btn-qv">Load</button>
+    <p class="hint">Answer distribution, timing and hesitation across participants.</p>
+    <div class="grid">
+      <div><h3>Answers</h3><canvas id="qv-dist" width="560" height="220"></canvas></div>
+      <div><h3>time_to_submit (ms, by device)</h3><canvas id="qv-time" width="560" height="220"></canvas></div>
+      <div><h3>hesitation_score (by device)</h3><canvas id="qv-hes" width="560" height="220"></canvas></div>
+      <div><h3>revision_count</h3><canvas id="qv-rev" width="560" height="220"></canvas></div>
+    </div>
+    <div id="qv-tbl"></div>
+  </div>
+  <div class="card">
+    <h2>Comparison</h2>
+    <label>question <input id="cmp-q" value="S1"></label>
+    <label>by <select id="cmp-by"><option value="confirm">confirm</option><option value="revised">revised</option></select></label>
+    <button id="btn-cmp">Compare</button>
+    <p class="hint">Effect sizes are exploratory.</p>
+    <div class="grid">
+      <div><h3>time_to_submit by group</h3><canvas id="cmp-time" width="560" height="220"></canvas></div>
+      <div><h3>hesitation_score by group</h3><canvas id="cmp-hes" width="560" height="220"></canvas></div>
+    </div>
+    <h3>Pre-prompt hesitation vs confirm change (exploratory strip)</h3>
+    <canvas id="cmp-strip" width="600" height="120"></canvas>
+    <div id="cmp-out"></div>
+  </div>
+  <div class="card">
+    <h2>Export</h2>
+    <a href="/api/admin/export/events.json">events.json</a> ·
+    <a href="/api/admin/export/metrics.csv">metrics.csv</a> ·
+    <a href="/api/admin/export/answers.csv">answers.csv</a>
+  </div>
+</section>
+</main>
+<script src="/admin.js?v=3" type="module"></script>
+</body>
+</html>
