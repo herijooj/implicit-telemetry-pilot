@@ -6,7 +6,7 @@ const LIKERT_EN = [
 ];
 // Display language: ?lang=pt-BR wins, then stored choice, then server default.
 // Stored answer values stay canonical (Yes/No, 1-5, English months); only labels translate.
-let LANG = normLang(new URLSearchParams(location.search).get("lang") || sessionStorage.getItem("lang") || "en");
+let LANG = normLang(new URLSearchParams(location.search).get("lang") || "en");
 let CONTACT = { en: "", pt: "" };
 const t = (k) => (UI[LANG] && UI[LANG][k] !== undefined) ? UI[LANG][k] : UI.en[k];
 const qText = (qid) => (LANG === "pt" && QT.pt[qid]?.text) || QTEXT[qid][1];
@@ -205,6 +205,8 @@ function applyStatic() {
   set("cf-q", t("confirm_q")); set("btn-keep", t("keep")); set("btn-change", t("change"));
   set("d-h1", t("done_h1")); set("d-desc", t("done_desc")); set("sess-label", t("sess_label"));
   set("email-opt-label", t("email_opt")); set("email-label", t("email_label")); set("btn-email", t("email_submit"));
+  const em = $("email-in");
+  if (em) em.placeholder = t("email_ph");
   set("btn-delete", t("del_btn"));
   set("contact-line", CONTACT[LANG] || CONTACT.en || "");
   set("contact-line2", CONTACT[LANG] || CONTACT.en || "");
@@ -216,8 +218,7 @@ async function bootLang() {
     if (r.ok) {
       const c = await r.json();
       CONTACT = c.contact_text || CONTACT;
-      if (!new URLSearchParams(location.search).get("lang") && !sessionStorage.getItem("lang"))
-        LANG = normLang(c.lang);
+      if (!new URLSearchParams(location.search).get("lang")) LANG = normLang(c.lang);
     }
   } catch { /* offline default: English */ }
   sessionStorage.setItem("lang", LANG);
