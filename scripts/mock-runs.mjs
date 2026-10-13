@@ -36,6 +36,7 @@ async function mockSession(i) {
   const slow = device === "phone" ? 1.4 : device === "tablet" ? 1.2 : 1.0;
 
   const s = await post("/api/session", {
+    synthetic: true,
     device_detected: device,
     viewport: { w: device === "phone" ? 390 : 1280, h: device === "phone" ? 844 : 800 },
     screen: { w: device === "phone" ? 390 : 1920, h: device === "phone" ? 844 : 1080 },

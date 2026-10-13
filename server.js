@@ -85,7 +85,7 @@ const server = http.createServer(async (req, res) => {
       const { order, prng } = resolveOrder(seed);
       const confirm_assignment = assignConfirm(seed);
       const id = crypto.randomUUID();
-      DB.createSession({ id, app_version: config.APP_VERSION, seed, prng, order, confirm_assignment });
+      DB.createSession({ id, app_version: config.APP_VERSION, seed, prng, order, confirm_assignment, synthetic: b.synthetic === true });
       DB.updateSession(id, {
         consent_at: Date.now(), consent_text_version: config.CONSENT_TEXT_VERSION,
         device_detected: b.device_detected || null,
@@ -184,9 +184,11 @@ const server = http.createServer(async (req, res) => {
       const mQ = p.match(/^\/api\/admin\/questions\/([^/]+)\/stats$/);
       if (req.method === "GET" && mQ) {
         const qid = decodeURIComponent(mQ[1]);
+        const inclSyn = u.searchParams.get("include_synthetic") === "1";
         const sessions = DB.listSessions();
         const rows = [];
         for (const s of sessions) {
+          if (s.synthetic && !inclSyn) continue;
           const ans = DB.db.prepare(`SELECT first_value, final_value FROM answers WHERE session_id=? AND question_id=?`).get(s.id, qid);
           if (!ans) continue;
           const m = DB.db.prepare(`SELECT metric_name, value_raw FROM derived_metrics WHERE session_id=? AND question_id=? AND visit_id IS NULL`).all(s.id, qid);
@@ -204,11 +206,13 @@ const server = http.createServer(async (req, res) => {
       if (req.method === "GET" && p === "/api/admin/compare") {
         const q = u.searchParams.get("question"), by = u.searchParams.get("by"); // confirm|revised
         if (!q || !["confirm", "revised"].includes(by)) return send(res, 400, { error: "need ?question=&by=confirm|revised" });
+        const inclSyn = u.searchParams.get("include_synthetic") === "1";
         const sessions = DB.listSessions();
         const groups = {};
         const prePrompt = []; // {x: hesitation/time, changed: 0/1} for flagged confirm items
         const agree = { both: 0, neither: 0, behav_only: 0, self_only: 0 };
         for (const s of sessions) {
+          if (s.synthetic && !inclSyn) continue;
           let g = null;
           const ca = JSON.parse(s.confirm_assignment || "{}");
           const ans = DB.db.prepare(`SELECT first_value, final_value FROM answers WHERE session_id=? AND question_id=?`).get(s.id, q);
@@ -261,18 +265,23 @@ const server = http.createServer(async (req, res) => {
       }
       if (req.method === "GET" && p === "/api/admin/export/events.json") {
         const excl = u.searchParams.get("exclude_abandoned") === "1";
-        const sessions = DB.listSessions().filter(s => !excl || s.completion_status !== "abandoned");
-        const out = sessions.map(s => ({ session: s, events: DB.getEvents(s.id), answers: DB.getAnswers(s.id) }));
+        const inclSyn = u.searchParams.get("include_synthetic") === "1";
+        // Results emails never leave the dashboard: stripped from the dump.
+        const sessions = DB.listSessions().filter(s => (!excl || s.completion_status !== "abandoned") && (inclSyn || !s.synthetic));
+        const out = sessions.map(s => {
+          const { contact_email, ...sess } = s;
+          return { session: sess, events: DB.getEvents(s.id), answers: DB.getAnswers(s.id) };
+        });
         res.writeHead(200, { "content-type": "application/json", "content-disposition": "attachment; filename=events.json" });
         return res.end(JSON.stringify(out));
       }
       if (req.method === "GET" && p === "/api/admin/export/metrics.csv") {
         const excl = u.searchParams.get("exclude_abandoned") === "1";
+        const inclSyn = u.searchParams.get("include_synthetic") === "1";
         let rows = DB.db.prepare(`SELECT * FROM derived_metrics`).all();
-        if (excl) {
-          const bad = new Set(DB.listSessions().filter(s => s.completion_status === "abandoned").map(s => s.id));
-          rows = rows.filter(r => !bad.has(r.session_id));
-        }
+        const skip = new Set(DB.listSessions()
+          .filter(s => (excl && s.completion_status === "abandoned") || (!inclSyn && s.synthetic)).map(s => s.id));
+        rows = rows.filter(r => !skip.has(r.session_id));
         const csv = "session,question,visit,metric,raw,z,version\n" + rows.map(r =>
           [r.session_id, r.question_id, r.visit_id ?? "", r.metric_name, r.value_raw ?? "", r.value_z ?? "", r.metric_version].join(",")).join("\n");
         res.writeHead(200, { "content-type": "text/csv", "content-disposition": "attachment; filename=metrics.csv" });
@@ -280,7 +289,8 @@ const server = http.createServer(async (req, res) => {
       }
       if (req.method === "GET" && p === "/api/admin/export/answers.csv") {
         const excl = u.searchParams.get("exclude_abandoned") === "1";
-        const sessions = DB.listSessions().filter(s => !excl || s.completion_status !== "abandoned");
+        const inclSyn = u.searchParams.get("include_synthetic") === "1";
+        const sessions = DB.listSessions().filter(s => (!excl || s.completion_status !== "abandoned") && (inclSyn || !s.synthetic));
         const qids = [...new Set(DB.db.prepare(`SELECT DISTINCT question_id FROM answers`).all().map(r => r.question_id))].sort();
         const lines = ["session," + qids.join(",")];
         for (const s of sessions) {

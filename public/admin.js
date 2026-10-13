@@ -49,7 +49,7 @@ async function load() {
     const ca = (s.confirm_assignment && typeof s.confirm_assignment === "object") ? s.confirm_assignment : {};
     const confirmed = Object.entries(ca).filter(([, v]) => v === "confirm").map(([k]) => k).join(",");
     const f = s.flags || {};
-    tr.innerHTML = `<td>${s.id.slice(0, 8)}</td><td>${s.device_confirmed || s.device_detected || ""}</td><td>${new Date(s.created_at).toLocaleString()}</td><td>${s.completion_status}</td><td>${confirmed}</td><td>${[`S4_C1:${f.S4_C1_discordant ?? "-"}`, `L3:${f.L3_L3b_inconsistent ?? "-"}`].join(" ")}</td><td><button data-del="${s.id}">del</button></td>`;
+    tr.innerHTML = `<td>${s.id.slice(0, 8)}${s.synthetic ? " [syn]" : ""}</td><td>${s.device_confirmed || s.device_detected || ""}</td><td>${new Date(s.created_at).toLocaleString()}</td><td>${s.completion_status}</td><td>${confirmed}</td><td>${[`S4_C1:${f.S4_C1_discordant ?? "-"}`, `L3:${f.L3_L3b_inconsistent ?? "-"}`].join(" ")}</td><td><button data-del="${s.id}">del</button></td>`;
     tr.onclick = (e) => { if (e.target.dataset.del) return; detail(s.id); };
     tr.querySelector("[data-del]").onclick = async (e) => {
       e.stopPropagation();
