@@ -199,7 +199,7 @@ const server = http.createServer(async (req, res) => {
             visit_metrics: mv.map(r => ({ metric: r.metric_name, raw: r.value_raw })),
           });
         }
-        return send(res, 200, { qid, n: rows.length, rows: rows.slice(0, 2000), note: "pilot, descriptive only" });
+        return send(res, 200, { qid, n: rows.length, rows: rows.slice(0, 2000) });
       }
       if (req.method === "GET" && p === "/api/admin/compare") {
         const q = u.searchParams.get("question"), by = u.searchParams.get("by"); // confirm|revised
@@ -257,7 +257,7 @@ const server = http.createServer(async (req, res) => {
             pbr = den ? num / den : null;
           }
         }
-        return send(res, 200, { question: q, by, groups: Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, { n: v.length, rows: v.slice(0, 1000) }])), summary, prePrompt: prePrompt.slice(0, 1000), prePrompt_r: pbr, agreement: agree, note: "pilot, descriptive only" });
+        return send(res, 200, { question: q, by, groups: Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, { n: v.length, rows: v.slice(0, 1000) }])), summary, prePrompt: prePrompt.slice(0, 1000), prePrompt_r: pbr, agreement: agree });
       }
       if (req.method === "GET" && p === "/api/admin/export/events.json") {
         const excl = u.searchParams.get("exclude_abandoned") === "1";
