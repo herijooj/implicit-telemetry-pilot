@@ -147,12 +147,16 @@ const server = http.createServer(async (req, res) => {
       while (loginFails.length && now - loginFails[0] > 60_000) loginFails.shift();
       if (loginFails.length >= 10) return send(res, 429, { error: "rate limited" });
       const b = await body(req);
-      const ok = crypto.timingSafeEqual(
-        Buffer.from(String(b.password || "")), Buffer.from(String(config.DASHBOARD_PASSWORD)));
+      // Length-checked compare: timingSafeEqual throws on length mismatch,
+      // which would turn a wrong password into a 500 (and leak length via status).
+      const given = Buffer.from(String(b.password || ""));
+      const want = Buffer.from(String(config.DASHBOARD_PASSWORD));
+      const ok = given.length === want.length && crypto.timingSafeEqual(given, want);
       if (!ok) { loginFails.push(now); return send(res, 401, { error: "bad password" }); }
       const tok = crypto.randomBytes(24).toString("hex");
       adminTokens.add(tok);
-      res.writeHead(200, { "content-type": "application/json", "set-cookie": `admin=${tok}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400` });
+      // Secure: TLS terminates at the reverse proxy, browsers always use HTTPS.
+      res.writeHead(200, { "content-type": "application/json", "set-cookie": `admin=${tok}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400` });
       return res.end(JSON.stringify({ ok: true }));
     }
     if (p.startsWith("/api/admin")) {
@@ -321,4 +325,5 @@ function d(a, b) {
   return sp ? (ma - mb) / sp : null;
 }
 
-server.listen(config.PORT, () => console.log(`pilot listening :${config.PORT} v${config.APP_VERSION}`));
+// Localhost-only: TLS + public access terminate at the reverse proxy (nginx).
+server.listen(config.PORT, "127.0.0.1", () => console.log(`pilot listening 127.0.0.1:${config.PORT} v${config.APP_VERSION}`));
