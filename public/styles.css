@@ -17,4 +17,11 @@ input[type=number], input[type=text], select, textarea { font-size: 1rem; paddin
 #confirm-modal[hidden] { display: none; }
 .modal-box { background: #fff; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px; min-width: 280px; }
 /* neutral prompt: no warning colors/icons, fixed button order Keep then Change */
+/* debrief deletion: visually separated right, not a flow step — link-styled, never a primary button */
+.danger-zone { margin-top: 8px; }
+.danger-zone h2 { font-size: 1rem; margin: 0 0 4px; }
+.danger-zone p { color: var(--mut); font-size: .9rem; margin: 0 0 12px; }
+.danger-zone #del-msg { margin: 8px 0 0; }
+.btn-danger { background: none; border: none; padding: 4px 0; color: #b91c1c; font-size: .9rem; text-decoration: underline; }
+.btn-danger:disabled { color: var(--mut); text-decoration: none; cursor: default; }
 @media (max-width: 480px) { body { padding: 8px; } .card { padding: 16px; } }

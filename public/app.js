@@ -208,6 +208,7 @@ function applyStatic() {
   const em = $("email-in");
   if (em) em.placeholder = t("email_ph");
   set("btn-delete", t("del_btn"));
+  set("del-h", t("del_zone_h")); set("del-p", t("del_zone_p"));
   set("contact-line", CONTACT[LANG] || CONTACT.en || "");
   set("contact-line2", CONTACT[LANG] || CONTACT.en || "");
   document.title = t("consent_h1");
@@ -458,9 +459,15 @@ async function finish() {
 }
 
 $("btn-delete").addEventListener("click", async () => {
+  const btn = $("btn-delete");
+  if (btn.disabled) return;
   if (!confirm(t("del_confirm"))) return;
-  await fetch(`/api/session/${S.sid}`, { method: "DELETE" });
+  btn.disabled = true;
+  const r = await fetch(`/api/session/${S.sid}`, { method: "DELETE" }).catch(() => null);
+  if (!r || !r.ok) { btn.disabled = false; $("del-msg").textContent = t("del_fail"); return; }
   $("del-msg").textContent = t("deleted_msg");
+  // Session is gone: the email opt-in can no longer store anything, so hide it.
+  document.querySelector("#screen-done .opt-in").hidden = true;
 });
 
 // Optional results-email opt-in. Stored only on explicit submit; wiped by data deletion.
