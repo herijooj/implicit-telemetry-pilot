@@ -413,6 +413,23 @@ $("btn-delete").addEventListener("click", async () => {
   $("del-msg").textContent = "Deleted.";
 });
 
+// Optional results-email opt-in. Stored only on explicit submit; wiped by data deletion.
+$("email-opt").addEventListener("change", (e) => {
+  $("email-row").hidden = !e.target.checked;
+  if (e.target.checked) $("email-in").focus();
+});
+$("btn-email").addEventListener("click", async () => {
+  const v = $("email-in").value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+    $("email-msg").textContent = "Please enter a valid email address.";
+    return;
+  }
+  const r = await fetch(`/api/session/${S.sid}/contact`, {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: v }),
+  });
+  $("email-msg").textContent = r.ok ? "Saved. You will be emailed the results." : "Could not save — please try again.";
+});
+
 // Resume after reload: continue same session, log session_resumed
 if (S.sid) {
   fetch(`/api/events`, { method: "POST", headers: { "content-type": "application/json" },

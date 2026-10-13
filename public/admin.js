@@ -78,6 +78,7 @@ async function detail(id) {
     return `${h?.value_raw?.toFixed?.(2) ?? "–"} <small>(${comps})</small>`;
   };
   let html = `<p><b>${session.id}</b> seed=${session.seed} order=${order.join(",")}</p>`;
+  if (session.contact_email) html += `<p>Results email: <b>${esc(session.contact_email)}</b></p>`;
   html += `<table><thead><tr><th>q</th><th>first</th><th>final</th><th>rev</th><th>confirm</th><th>hesitation (components)</th><th>self-rep</th></tr></thead><tbody>`;
   for (const qid of order) {
     const a = answers[qid];
@@ -143,6 +144,7 @@ function drawTraj() {
 
 // ---- tiny canvas chart helpers (no deps, first-party) ----
 const PALETTE = ["#2563eb", "#f59e0b", "#16a34a", "#9333ea", "#6b7280"];
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function C(id) { const c = $(id), x = c.getContext("2d"); x.clearRect(0, 0, c.width, c.height); return [c, x]; }
 function stats(a) {
   const v = a.filter(Number.isFinite).sort((x, y) => x - y);

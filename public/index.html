@@ -66,6 +66,16 @@
     <p>This study examines whether hesitation before a confirmation prompt predicts answer revision, and how self-reported difficulty relates to interaction signals. Your data includes answers plus interaction timing only. No key content, no IP, no trackers.</p>
     <p>Session ID: <code id="sess-id"></code></p>
     <p id="contact-line2"></p>
+    <div class="opt-in">
+      <label class="consent"><input type="checkbox" id="email-opt"> Yes, email me the results of this research</label>
+      <div id="email-row" hidden>
+        <label>Your email
+          <input type="email" id="email-in" autocomplete="email" placeholder="you@example.com">
+        </label>
+        <button id="btn-email">Submit email</button>
+        <p id="email-msg" role="status"></p>
+      </div>
+    </div>
     <button id="btn-delete">Delete my data</button>
     <p id="del-msg"></p>
   </section>

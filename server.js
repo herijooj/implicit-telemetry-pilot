@@ -118,6 +118,17 @@ const server = http.createServer(async (req, res) => {
       try { recompute(mEnd[1]); } catch (e) { console.error("recompute", e.message); }
       return send(res, 200, { ok: true, metric_version: METRIC_VERSION });
     }
+    // Optional results-email opt-in (thank-you page). Stored on the session row so
+    // both delete paths (participant + admin) wipe it with everything else.
+    const mContact = p.match(/^\/api\/session\/([^/]+)\/contact$/);
+    if (req.method === "POST" && mContact) {
+      if (!DB.getSession(mContact[1])) return send(res, 404, { error: "no session" });
+      const b = await body(req).catch(() => ({}));
+      const email = String(b.email || "").trim().slice(0, 320);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return send(res, 400, { error: "invalid email" });
+      DB.updateSession(mContact[1], { contact_email: email });
+      return send(res, 200, { ok: true });
+    }
     const mDel = p.match(/^\/api\/session\/([^/]+)$/);
     if (req.method === "DELETE" && mDel && !p.startsWith("/api/admin")) {
       if (!DB.getSession(mDel[1])) return send(res, 404, { error: "no session" });
