@@ -260,20 +260,27 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, { question: q, by, groups: Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, { n: v.length, rows: v.slice(0, 1000) }])), summary, prePrompt: prePrompt.slice(0, 1000), prePrompt_r: pbr, agreement: agree, note: "pilot, descriptive only" });
       }
       if (req.method === "GET" && p === "/api/admin/export/events.json") {
-        const sessions = DB.listSessions();
+        const excl = u.searchParams.get("exclude_abandoned") === "1";
+        const sessions = DB.listSessions().filter(s => !excl || s.completion_status !== "abandoned");
         const out = sessions.map(s => ({ session: s, events: DB.getEvents(s.id), answers: DB.getAnswers(s.id) }));
         res.writeHead(200, { "content-type": "application/json", "content-disposition": "attachment; filename=events.json" });
         return res.end(JSON.stringify(out));
       }
       if (req.method === "GET" && p === "/api/admin/export/metrics.csv") {
-        const rows = DB.db.prepare(`SELECT * FROM derived_metrics`).all();
+        const excl = u.searchParams.get("exclude_abandoned") === "1";
+        let rows = DB.db.prepare(`SELECT * FROM derived_metrics`).all();
+        if (excl) {
+          const bad = new Set(DB.listSessions().filter(s => s.completion_status === "abandoned").map(s => s.id));
+          rows = rows.filter(r => !bad.has(r.session_id));
+        }
         const csv = "session,question,visit,metric,raw,z,version\n" + rows.map(r =>
           [r.session_id, r.question_id, r.visit_id ?? "", r.metric_name, r.value_raw ?? "", r.value_z ?? "", r.metric_version].join(",")).join("\n");
         res.writeHead(200, { "content-type": "text/csv", "content-disposition": "attachment; filename=metrics.csv" });
         return res.end(csv);
       }
       if (req.method === "GET" && p === "/api/admin/export/answers.csv") {
-        const sessions = DB.listSessions();
+        const excl = u.searchParams.get("exclude_abandoned") === "1";
+        const sessions = DB.listSessions().filter(s => !excl || s.completion_status !== "abandoned");
         const qids = [...new Set(DB.db.prepare(`SELECT DISTINCT question_id FROM answers`).all().map(r => r.question_id))].sort();
         const lines = ["session," + qids.join(",")];
         for (const s of sessions) {

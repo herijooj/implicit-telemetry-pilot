@@ -28,6 +28,13 @@ $("btn-login").onclick = async () => {
   } catch (e) { status(`Login error: ${e.message}`, true); }
 };
 $("btn-refresh").onclick = () => load().catch(e => status(`Refresh failed: ${e.message}`, true));
+$("ex-ab").onchange = (e) => {
+  document.querySelectorAll("a.ex").forEach(a => {
+    const url = new URL(a.getAttribute("href"), location.origin);
+    e.target.checked ? url.searchParams.set("exclude_abandoned", "1") : url.searchParams.delete("exclude_abandoned");
+    a.setAttribute("href", url.pathname + url.search);
+  });
+};
 
 async function load() {
   const j = await api("/api/admin/sessions");
