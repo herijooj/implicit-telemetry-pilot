@@ -9,7 +9,7 @@ export function normLang(s) {
 export const UI = {
   en: {
     consent_h1: "Short survey study",
-    consent_desc: "This study records how you interact with the form (timing, mouse/touch movement, keyboard timing) in addition to your answers.",
+    consent_desc: "This research is conducted within the course Topics in Human-Computer Interaction at the Federal University of Paraná (UFPR), by students Antonio da Ressurreição Filho, Heric Camargo and João Caboclo. The research aims to analyze users' interaction with a form through the collection of telemetry data, such as clicks, field navigation and completion time. The collected data will be used exclusively for academic purposes, with access restricted to the researchers and measures in place to preserve participants' privacy. Participation is voluntary, and you may withdraw at any time, without any penalty. By continuing, I declare that I have read and understood the information above and voluntarily agree to participate in the research and to the collection of the telemetry data described.",
     consent_check: "I understand and agree",
     start: "Start",
     ctx_h1: "About your device",
