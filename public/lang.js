@@ -44,7 +44,7 @@ export const UI = {
   },
   pt: {
     consent_h1: "Pesquisa rápida",
-    consent_desc: "Este estudo registra como você interage com o formulário (tempo de resposta, movimento de mouse/toque, ritmo de digitação), além das suas respostas.",
+    consent_desc: "Esta pesquisa é realizada no âmbito da disciplina de Tópicos em Interação Humano-Computador, da Universidade Federal do Paraná (UFPR), pelos estudantes Antonio da Ressurreição Filho, Heric Camargo e João Caboclo. A pesquisa tem como objetivo analisar a interação de usuários com um formulário por meio da coleta de dados de telemetria, como cliques, navegação entre campos e tempo de preenchimento. Os dados coletados serão utilizados exclusivamente para fins acadêmicos, com acesso restrito aos pesquisadores e adoção de medidas para preservar a privacidade dos participantes. A participação é voluntária, e você poderá desistir a qualquer momento, sem qualquer prejuízo. Ao continuar, declaro que li e compreendi as informações acima e concordo voluntariamente em participar da pesquisa e com a coleta dos dados de telemetria descritos.",
     consent_check: "Eu entendo e concordo",
     start: "Começar",
     ctx_h1: "Sobre o seu dispositivo",
