@@ -74,6 +74,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ---- public API ----
+    if (req.method === "GET" && p === "/api/config") {
+      return send(res, 200, { lang: config.LANG, app_version: config.APP_VERSION,
+        consent_text_version: config.CONSENT_TEXT_VERSION,
+        contact_text: { en: config.CONTACT_TEXT, pt: config.CONTACT_TEXT_PT } });
+    }
     if (req.method === "POST" && p === "/api/session") {
       const b = await body(req);
       const seed = (crypto.randomInt(1 << 30)) >>> 0;

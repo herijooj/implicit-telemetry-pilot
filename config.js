@@ -31,6 +31,8 @@ export const config = {
   IDLE_PAUSE_MS: num("IDLE_PAUSE_MS", 2000),
   DATA_DIR: process.env.DATA_DIR || "./data",
   CONSENT_TEXT_VERSION: process.env.CONSENT_TEXT_VERSION || "v1",
+  LANG: (process.env.APP_LANG || "en").toLowerCase().startsWith("pt") ? "pt" : "en",
   CONTACT_TEXT: process.env.CONTACT_TEXT || "Contact: [YOUR NAME / LAB], [EMAIL]. Ethics: [IRB / EXEMPTION REF].",
+  CONTACT_TEXT_PT: process.env.CONTACT_TEXT_PT || "Contato: [SEU NOME / LABORATÓRIO], [E-MAIL]. Ética: [CEP / PARECER].",
   DATA_RETENTION_DAYS: num("DATA_RETENTION_DAYS", 0),
 };

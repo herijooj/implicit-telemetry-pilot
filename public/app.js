@@ -1,4 +1,22 @@
 // Participant client: flow + first-party telemetry per §6. No third-party trackers.
+import { UI, QT, LIKERT_PT, YESNO_PT, normLang } from "./lang.js";
+const LIKERT_EN = [
+  ["1", "Strongly disagree"], ["2", "Disagree"], ["3", "Neutral"],
+  ["4", "Agree"], ["5", "Strongly agree"],
+];
+// Display language: ?lang=pt-BR wins, then stored choice, then server default.
+// Stored answer values stay canonical (Yes/No, 1-5, English months); only labels translate.
+let LANG = normLang(new URLSearchParams(location.search).get("lang") || sessionStorage.getItem("lang") || "en");
+let CONTACT = { en: "", pt: "" };
+const t = (k) => (UI[LANG] && UI[LANG][k] !== undefined) ? UI[LANG][k] : UI.en[k];
+const qText = (qid) => (LANG === "pt" && QT.pt[qid]?.text) || QTEXT[qid][1];
+// Canonical value + display label pairs. Parallel arrays in QT.pt stay index-aligned.
+function dispOptions(type, extra, qid) {
+  if (type === "yesno") return LANG === "pt" ? YESNO_PT : [["Yes", "Yes"], ["No", "No"]];
+  if (type === "likert5") return LANG === "pt" ? LIKERT_PT : LIKERT_EN;
+  if (Array.isArray(extra) && LANG === "pt" && QT.pt[qid]?.options) return extra.map((v, i) => [v, QT.pt[qid].options[i] ?? v]);
+  return extra.map((o) => [o, o]);
+}
 const QTEXT = {
   B1: ["radio", "Is it currently day or night where you are?", ["Day", "Night"]],
   B2: ["number", "How many windows are in the room you're in?", { min: 0, max: 50 }],
@@ -172,6 +190,42 @@ function detectDevice() {
   return "desktop";
 }
 
+function applyStatic() {
+  const set = (id, v) => { const el = $(id); if (el != null && v !== undefined) el.textContent = v; };
+  set("c-h1", t("consent_h1")); set("c-desc", t("consent_desc")); set("c-check", t("consent_check"));
+  set("btn-start", t("start")); set("x-h1", t("ctx_h1")); set("dev-label", t("device_label"));
+  const ds = $("device-sel");
+  if (ds && ds.options.length >= 3) {
+    ds.options[0].textContent = t("device_names").desktop;
+    ds.options[1].textContent = t("device_names").tablet;
+    ds.options[2].textContent = t("device_names").phone;
+  }
+  set("age-label", t("age_label")); set("age-default", t("age_select")); set("age-pnts", t("age_pnts"));
+  set("btn-context-next", t("ctx_next")); set("btn-back", t("back")); set("btn-next", t("next"));
+  set("cf-q", t("confirm_q")); set("btn-keep", t("keep")); set("btn-change", t("change"));
+  set("d-h1", t("done_h1")); set("d-desc", t("done_desc")); set("sess-label", t("sess_label"));
+  set("email-opt-label", t("email_opt")); set("email-label", t("email_label")); set("btn-email", t("email_submit"));
+  set("btn-delete", t("del_btn"));
+  set("contact-line", CONTACT[LANG] || CONTACT.en || "");
+  set("contact-line2", CONTACT[LANG] || CONTACT.en || "");
+  document.title = t("consent_h1");
+}
+async function bootLang() {
+  try {
+    const r = await fetch("/api/config");
+    if (r.ok) {
+      const c = await r.json();
+      CONTACT = c.contact_text || CONTACT;
+      if (!new URLSearchParams(location.search).get("lang") && !sessionStorage.getItem("lang"))
+        LANG = normLang(c.lang);
+    }
+  } catch { /* offline default: English */ }
+  sessionStorage.setItem("lang", LANG);
+  document.documentElement.lang = LANG === "pt" ? "pt-BR" : "en";
+  applyStatic();
+}
+bootLang();
+
 $("consent-box").addEventListener("change", (e) => { $("btn-start").disabled = !e.target.checked; });
 
 $("btn-start").addEventListener("click", async () => {
@@ -187,7 +241,8 @@ $("btn-start").addEventListener("click", async () => {
   emit("session_start", null, null, { app_version: j.app_version, seed: j.seed, order: j.order, confirm_assignment: j.confirm_assignment, device_detected: detected, viewport: { w: innerWidth, h: innerHeight }, screen: { w: screen.width, h: screen.height }, dpr: devicePixelRatio, ua: navigator.userAgent.slice(0, 500), lang: navigator.language });
   emit("consent_given", null, null, { consent_text_version: "v1" });
   $("device-sel").value = detected;
-  $("device-detected").textContent = `Detected: ${detected} — correct it if wrong.`;
+  const devName = (t("device_names") || {})[detected] || detected;
+  $("device-detected").textContent = t("device_hint")(devName);
   show("screen-context");
 });
 
@@ -209,9 +264,9 @@ function renderQ() {
   S.qOnset = now(); S.qOnsetAbs = Date.now();
   emit("q_shown", qid, curVisit(), { position_index: S.idx });
   show("screen-q");
-  $("progress").textContent = `Question ${S.idx + 1} of ${S.order.length}`;
-  const [type, text, extra] = QTEXT[qid];
-  $("q-text").textContent = text;
+  $("progress").textContent = t("progress")(S.idx + 1, S.order.length);
+  const [type, , extra] = QTEXT[qid];
+  $("q-text").textContent = qText(qid);
   $("q-err").hidden = true;
   $("btn-back").disabled = S.idx === 0;
   const bodyEl = $("q-body");
@@ -224,13 +279,7 @@ function renderQ() {
   };
 
   if (type === "radio" || type === "yesno" || type === "likert5") {
-    const LIKERT = [
-      ["1", "Strongly disagree"], ["2", "Disagree"], ["3", "Neutral"],
-      ["4", "Agree"], ["5", "Strongly agree"],
-    ];
-    const opts = type === "yesno" ? [["Yes", "Yes"], ["No", "No"]]
-      : type === "likert5" ? LIKERT
-      : extra.map(o => [o, o]);
+    const opts = dispOptions(type, extra, qid);
     const wrap = document.createElement("div");
     wrap.className = "opts"; wrap.setAttribute("role", "radiogroup");
     opts.forEach(([op, label], i) => {
@@ -254,7 +303,7 @@ function renderQ() {
   } else if (type === "number") {
     const inp = document.createElement("input");
     inp.type = "number"; inp.id = `in-${qid}`; inp.min = extra.min; inp.max = extra.max; inp.value = existing ?? "";
-    inp.setAttribute("aria-label", text);
+    inp.setAttribute("aria-label", qText(qid));
     inp.addEventListener("input", () => {
       const old = S.answers[qid];
       if (inp.value !== "" && old !== undefined && String(old) !== inp.value) trackChange(old, inp.value);
@@ -267,7 +316,7 @@ function renderQ() {
   } else if (type === "dropdown") {
     const sel = document.createElement("select");
     sel.id = `in-${qid}`;
-    sel.innerHTML = `<option value="">— select —</option>` + extra.map(m => `<option ${existing === m ? "selected" : ""}>${m}</option>`).join("");
+    sel.innerHTML = `<option value="">${t("age_select")}</option>` + dispOptions(type, extra, qid).map(([v, lab]) => `<option value="${v}" ${existing === v ? "selected" : ""}>${lab}</option>`).join("");
     sel.addEventListener("change", () => {
       const old = S.answers[qid];
       if (old !== undefined && old !== sel.value) trackChange(old, sel.value);
@@ -279,7 +328,7 @@ function renderQ() {
   } else if (type === "text") {
     const ta = document.createElement("textarea");
     ta.id = `in-${qid}`; ta.maxLength = 1000; ta.rows = 4; ta.value = existing ?? "";
-    ta.setAttribute("aria-label", text);
+    ta.setAttribute("aria-label", qText(qid));
     ta.addEventListener("input", () => {
       const old = S.answers[qid];
       if (old !== undefined && old !== ta.value) emit("answer_changed", qid, curVisit(), { old, new: ta.value, source: "user" });
@@ -297,7 +346,7 @@ function renderQ() {
     wrap.className = "opts"; wrap.style.flexDirection = "column";
     const redraw = () => {
       wrap.innerHTML = "";
-      [...list.map(q => [q, QTEXT[q][1]]), ["NONE", "None of them"]].forEach(([id, label]) => {
+      [...list.map(q => [q, qText(q)]), ["NONE", t("z_none")]].forEach(([id, label]) => {
         const lab = document.createElement("label");
         lab.dataset.optId = `z-${id}`;
         lab.innerHTML = `<input type="checkbox" value="${id}" ${sel.has(id) ? "checked" : ""}>${label}`;
@@ -339,7 +388,7 @@ function validate() {
   $("btn-next").disabled = !ok;
   if (!ok && S.answers[qid] !== undefined && S.answers[qid] !== "") {
     $("q-err").hidden = false;
-    $("q-err").textContent = "Please enter a valid integer in range.";
+    $("q-err").textContent = t("validation_number");
     emit("validation_error", qid, curVisit(), { error_code: "number_range" });
   } else $("q-err").hidden = true;
 }
@@ -408,9 +457,9 @@ async function finish() {
 }
 
 $("btn-delete").addEventListener("click", async () => {
-  if (!confirm("Delete this session and all its events?")) return;
+  if (!confirm(t("del_confirm"))) return;
   await fetch(`/api/session/${S.sid}`, { method: "DELETE" });
-  $("del-msg").textContent = "Deleted.";
+  $("del-msg").textContent = t("deleted_msg");
 });
 
 // Optional results-email opt-in. Stored only on explicit submit; wiped by data deletion.
@@ -421,13 +470,13 @@ $("email-opt").addEventListener("change", (e) => {
 $("btn-email").addEventListener("click", async () => {
   const v = $("email-in").value.trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
-    $("email-msg").textContent = "Please enter a valid email address.";
+    $("email-msg").textContent = t("email_invalid");
     return;
   }
   const r = await fetch(`/api/session/${S.sid}/contact`, {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: v }),
   });
-  $("email-msg").textContent = r.ok ? "Saved. You will be emailed the results." : "Could not save — please try again.";
+  $("email-msg").textContent = r.ok ? t("email_saved") : t("email_fail");
 });
 
 // Resume after reload: continue same session, log session_resumed

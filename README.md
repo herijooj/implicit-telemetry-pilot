@@ -11,6 +11,7 @@ Participant form with first-party behavioral telemetry + protected dashboard. Ze
 - Admin `/admin` (password cookie, rate-limited, noindex): sessions table, detail w/ hesitation components + timeline + trajectory over option boxes + raw events, question view, compare (Cohen's d, n), exports (events.json, metrics.csv, answers.csv).
 - `node scripts/simulate.mjs --check` validates ordering + balanced assignment over 1000 seeds + idempotency.
 - `node scripts/mock-runs.mjs [N] [BASE]` creates synthetic sessions through the API for dashboard testing.
+- Bilingual participant form (English + Português): `APP_LANG=pt` in `.env` makes Portuguese the default; `?lang=en` or `?lang=pt-BR` overrides per visit. Stored answer values stay canonical (`Yes`/`No`, `1`–`5`), only display labels translate. Dashboard stays in English.
 
 ## Quick run (local)
 

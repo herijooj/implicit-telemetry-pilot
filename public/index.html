@@ -3,24 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Survey Study (Pilot)</title>
+<title id="doc-title">Survey Study (Pilot)</title>
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <main id="app" aria-live="polite">
   <!-- Landing + consent -->
   <section id="screen-consent" class="card">
-    <h1>Short survey study</h1>
-    <p>This study records <strong>how you interact with the form</strong> (timing, mouse/touch movement, keyboard timing) in addition to your answers.</p>
+    <h1 id="c-h1">Short survey study</h1>
+    <p id="c-desc">This study records how you interact with the form (timing, mouse/touch movement, keyboard timing) in addition to your answers.</p>
     <p id="contact-line"></p>
-    <label class="consent"><input type="checkbox" id="consent-box"> I understand and agree</label>
+    <label class="consent"><input type="checkbox" id="consent-box"> <span id="c-check">I understand and agree</span></label>
     <button id="btn-start" disabled>Start</button>
   </section>
 
   <!-- Context -->
   <section id="screen-context" class="card" hidden>
-    <h1>About your device</h1>
-    <label>Device type
+    <h1 id="x-h1">About your device</h1>
+    <label><span id="dev-label">Device type</span>
       <select id="device-sel">
         <option value="desktop">desktop</option>
         <option value="tablet">tablet</option>
@@ -28,12 +28,12 @@
       </select>
     </label>
     <p class="hint" id="device-detected"></p>
-    <label>Age range (optional)
+    <label><span id="age-label">Age range (optional)</span>
       <select id="age-sel">
-        <option value="">— select —</option>
+        <option value="" id="age-default">— select —</option>
         <option>18–24</option><option>25–34</option><option>35–44</option>
         <option>45–54</option><option>55–64</option><option>65+</option>
-        <option>Prefer not to say</option>
+        <option id="age-pnts">Prefer not to say</option>
       </select>
     </label>
     <button id="btn-context-next">Next</button>
@@ -54,7 +54,7 @@
   <!-- Confirm prompt -->
   <div id="confirm-modal" hidden role="dialog" aria-modal="true" aria-label="Confirm answer">
     <div class="modal-box">
-      <p>Are you sure about your answer?</p>
+      <p id="cf-q">Are you sure about your answer?</p>
       <button id="btn-keep">Keep my answer</button>
       <button id="btn-change">Change my answer</button>
     </div>
@@ -62,14 +62,14 @@
 
   <!-- Debrief -->
   <section id="screen-done" class="card" hidden>
-    <h1>Thank you</h1>
-    <p>This study examines whether hesitation before a confirmation prompt predicts answer revision, and how self-reported difficulty relates to interaction signals. Your data includes answers plus interaction timing only. No key content, no IP, no trackers.</p>
-    <p>Session ID: <code id="sess-id"></code></p>
+    <h1 id="d-h1">Thank you</h1>
+    <p id="d-desc">This study examines whether hesitation before a confirmation prompt predicts answer revision, and how self-reported difficulty relates to interaction signals. Your data includes answers plus interaction timing only. No key content, no IP, no trackers.</p>
+    <p><span id="sess-label">Session ID:</span> <code id="sess-id"></code></p>
     <p id="contact-line2"></p>
     <div class="opt-in">
-      <label class="consent"><input type="checkbox" id="email-opt"> Yes, email me the results of this research</label>
+      <label class="consent"><input type="checkbox" id="email-opt"> <span id="email-opt-label">Yes, email me the results of this research</span></label>
       <div id="email-row" hidden>
-        <label>Your email
+        <label><span id="email-label">Your email</span>
           <input type="email" id="email-in" autocomplete="email" placeholder="you@example.com">
         </label>
         <button id="btn-email">Submit email</button>
@@ -80,6 +80,6 @@
     <p id="del-msg"></p>
   </section>
 </main>
-<script src="/app.js?v=3" type="module"></script>
+<script src="/app.js?v=4" type="module"></script>
 </body>
 </html>
